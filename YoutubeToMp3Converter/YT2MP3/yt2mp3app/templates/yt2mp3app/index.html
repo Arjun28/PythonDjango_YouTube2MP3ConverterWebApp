@@ -1,0 +1,139 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <!-- Latest compiled and minified CSS -->
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.4.1/css/bootstrap.min.css">
+
+    <!-- jQuery library -->
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
+    
+    <!-- Popper JS -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.16.0/umd/popper.min.js"></script>
+    
+    <!-- Latest compiled JavaScript -->
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.4.1/js/bootstrap.min.js"></script> 
+
+    <title>YouTube To MP3 Converter</title>
+    <link rel="shortcut icon" type="image/png" href="{% static 'images/favicon.png' %}"/>
+</head>
+<body style = "background-color: black;">
+
+
+    <div class="container">
+
+
+        <div class="row">
+            <div class="col">
+                <img class="mx-auto d-block" src = "{% static 'images/Youtube2MP3Conv.png' %}" >
+            </div>
+        </div>
+
+        <div class="row" style = "height: 200px;">
+            <div class="col" style = "background-color: black;  line-height: 200px; height: 200px;text-align: center;">
+                <input id = "inpURL" name = "InputURL" type="text" class="form-control form-control-lg" placeholder = "Input URL..." style = "line-height: 1.5; display: inline-block; vertical-align: middle;">
+            </div>
+            
+            <div class="col" id = "searchDiv" style = "background-color: black;line-height: 200px; height: 200px;background-repeat: no-repeat;background-size: 600px 200px;">
+                <button id = "searchButton" type="button" class="btn btn-primary btn-lg " style = "line-height: 1.5; display: inline-block; vertical-align: middle;">Search</button>
+            </div>
+        </div>
+
+        <div id = "info" style = "display: none;color: white;">
+            <div class="row"><div class="col"  style = "background-color: black;"><img id = "v_thumbnail" class="img-thumbnail" height = 150 width = 150></div></div>
+            <div class="row" style = "height: 25px;"><div class="col"  style = "background-color: black;"><h4 id = 'v_title'></h4></div></div>
+            <div class="row" style = "height: 25px;margin-bottom: 50px;"><div class="col"  style = "background-color: black;"><h5 id = 'v_length'></h5></div></div>
+            
+        </div>
+
+        <div>
+            <div class="row">
+                <div id = "loading" class="col"  style = "background-color: black;text-align: center; height:200px;line-height: 200px; display: none;">
+                    <div class="spinner-border text-primary" style = "line-height: 1.5; display: inline-block; vertical-align: middle;"></div>
+                </div>
+            </div>
+        </div>
+            
+        <div class = "row">
+            <div class="col" id = "manual" style = "color: white;">
+                <p >Welcome.</p>
+                <p>Free, fast and easy tool to download Youtube to MP3</p> 
+                <p>Copy Paste the link in the search input and click search to process.</p>
+                <p>Please wait for the processing of lengthy videos. Videos of short duration are recommended.</p>
+                <p>Depending on the availability, the 'Download button' unlocks to download</p>
+
+                
+            </div>
+        </div>
+
+
+        <div class="row" style = "height : 50px;">
+            <div class="col-sm-5" style = "background-color: black; margin-bottom:2px;">
+                <form id = "downloadform" method="get" action="">
+                    <button id = "downloadbutton" type="submit" class="btn btn-primary btn-block" disabled>Download</button>
+                </form>
+            </div>
+
+            <div class="col-sm-5" style = "background-color: black;">
+                    <button id = "clear" type="button" class="btn btn-primary btn-block">Clear</button>
+             </div>
+        </div>
+
+
+    </div> 
+
+
+
+
+<script>
+    $('#searchButton').click(function(){
+        urlString = $('#inpURL').val();
+        if( urlString != '' && (String(urlString).includes(".com") && String(urlString).includes("you") )){
+            $('#loading').css('display', 'none');
+            $('#info').css('display', 'none');
+            $('#downloadbutton').attr("disabled", true);
+
+            $('#searchDiv').css("background-image", "url({% static 'images/search.gif' %})");
+            $('#loading').css('display', 'inline');
+            $('#manual').css('display', 'none');
+
+            $.ajax({
+                url: 'GetInfo/',
+                method:  "POST",
+                data: {
+                    csrfmiddlewaretoken: "{{ csrf_token }}",
+                    URLdata : $('#inpURL').val()
+                },                
+                success: function(resultResponse){
+                    //console.log(resultResponse);
+
+                    $('#v_title').text("Title : " + resultResponse.vid_title);
+                    $('#v_length').text("Duration : " + resultResponse.vid_length + ' seconds');
+                    $('#v_thumbnail').attr('src', resultResponse.vid_thumbnail);
+                    $('#loading').css('display', 'none');
+                    $('#info').css('display', 'inline');
+                    $('#downloadform').attr('action', resultResponse.path_download);
+                    $('#downloadbutton').attr("disabled", false);
+
+                }
+            });   
+        }
+        else{
+            alert('Enter valid URL.');
+        }
+    });
+
+    $('#clear').click(function(){
+        location.reload();
+    }
+
+    );
+/*use ajax
+for success reponse - instead of spinner show the vidinfo 
+unlock the download option and update the link in button to download*/
+
+</script>
+</body>
+</html>
